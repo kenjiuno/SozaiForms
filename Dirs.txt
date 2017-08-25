@@ -1,0 +1,10 @@
+﻿H:\Tmp\Sozai\VB4
+H:\Tmp\Sozai\VC6-Icons
+H:\Tmp\Sozai\VS2015 Image Library
+H:\Tmp\Sozai\Visual Studio 2013 Image Library
+H:\Vs2005\Common7\VS2005ImageLibrary
+H:\Tmp\Sozai\breathe-icon-theme-0.51
+H:\Tmp\Sozai\gnome-icon-theme-3.12.0
+H:\Tmp\Sozai\open_icon_library-standard-0.11
+H:\Tmp\Sozai\net.wakasi.eclipse.gui.icon.library
+H:\Tmp\Sozai\tango-icon-theme-0.8.90
