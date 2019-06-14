@@ -54,7 +54,7 @@ namespace PicSozai {
                                         int biClrUsed = br.ReadInt32();
                                         int biClrImportant = br.ReadInt32();
 
-                                        Color[] pal = new Color[(bColorCount == 0) ? ((biBitCount <= 8) ? 1 << biBitCount : 0) : bColorCount];
+                                        Color[] pal = new Color[(biBitCount <= 8) ? 1 << biBitCount : 0];
                                         for (int t = 0; t < pal.Length; t++) {
                                             byte rgbBlue = br.ReadByte();
                                             byte rgbGreen = br.ReadByte();
@@ -64,7 +64,7 @@ namespace PicSozai {
                                         }
 
                                         pic = new Bitmap(bWidth, bHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                                        if (bColorCount == 2) {
+                                        if (biBitCount == 1) {
                                             int baseXor = 0;
                                             int pitchXor = (((bWidth + 7) / 8) + 3) & (~3);
                                             int cbXor = pitchXor * bHeight;
@@ -89,7 +89,7 @@ namespace PicSozai {
                                                 }
                                             }
                                         }
-                                        else if (bColorCount == 16) {
+                                        else if (biBitCount == 4) {
                                             int baseXor = 0;
                                             int pitchXor = (bWidth + 1) / 2;
                                             int cbXor = pitchXor * bHeight;
@@ -171,7 +171,7 @@ namespace PicSozai {
                                                 }
                                             }
                                         }
-                                        else if (bColorCount == 0 && biBitCount == 8) {
+                                        else if (biBitCount == 8) {
                                             int baseXor = 0;
                                             int pitchXor = (bWidth + 3) & (~3);
                                             int cbXor = pitchXor * bHeight;
