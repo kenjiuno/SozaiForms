@@ -11,6 +11,9 @@
 
 !define APP "SozaiForms"
 
+!system 'MySign "bin\DEBUG\${APP}.exe"'
+!finalize 'MySign "%1"'
+
 !system 'DefineAsmVer.exe "bin\DEBUG\${APP}.exe" "!define VER ""[FVER]"" " > Appver.tmp'
 !include "Appver.tmp"
 !searchreplace APV ${VER} "." "_"
