@@ -1,5 +1,6 @@
 ﻿using kenjiuno.AutoHourglass;
 using PicSozai;
+using SozaiForms.Forms;
 using SozaiForms.Helpers;
 using SozaiForms.Properties;
 using SozaiForms.Usecases;
@@ -12,6 +13,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -51,6 +53,7 @@ namespace SozaiForms
             _extractIconUsecase = extractIconUsecase;
             _splitBitmapUsecase = splitBitmapUsecase;
             _dirsFile = Path.Combine(Application.StartupPath, "Dirs.txt");
+            File.Open(_dirsFile, FileMode.OpenOrCreate).Close();
             _defaultInstallDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SozaiForms");
             Directory.CreateDirectory(_defaultInstallDir);
 
@@ -115,14 +118,47 @@ namespace SozaiForms
             {
                 if (MessageBox.Show(this, $"{zipFile} を直ちにインストールしますか", Text, MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    using (new AH())
-                    {
-                        var dirSaveTo = Path.Combine(_defaultInstallDir, Path.GetFileNameWithoutExtension(zipFile));
-                        Directory.CreateDirectory(dirSaveTo);
-                        ZipFile.ExtractToDirectory(zipFile, dirSaveTo, Encoding.GetEncoding(932));
-                        _clearCache_Click(_clearCache, e);
-                        Process.Start(dirSaveTo);
-                    }
+                    var form = new InstallForm();
+                    form._message.Text = $"{Path.GetFileName(zipFile)} をインストールしています。";
+                    form.Show(this);
+
+                    _appendableTaskWorker.Run(
+                        async previous =>
+                        {
+                            await previous;
+
+                            SetEnabled(false);
+                            try
+                            {
+                                try
+                                {
+                                    var dirSaveTo = Path.Combine(_defaultInstallDir, Path.GetFileNameWithoutExtension(zipFile));
+
+                                    await Task.Run(
+                                        () =>
+                                        {
+                                            Directory.CreateDirectory(dirSaveTo);
+                                            ZipFile.ExtractToDirectory(zipFile, dirSaveTo, Encoding.GetEncoding(932));
+                                        }
+                                    );
+
+                                    _clearCache_Click(_clearCache, e);
+                                    Process.Start(dirSaveTo);
+                                    form.Dispose();
+                                }
+                                catch (Exception ex)
+                                {
+                                    MessageBox.Show("エラー\n\n" + ex);
+                                    ExceptionDispatchInfo.Capture(ex).Throw();
+                                    throw;
+                                }
+                            }
+                            finally
+                            {
+                                SetEnabled(true);
+                            }
+                        }
+                    );
                 }
             }
         }

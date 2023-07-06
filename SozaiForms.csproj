@@ -74,6 +74,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\InstallForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\InstallForm.Designer.cs">
+      <DependentUpon>InstallForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\AppendableTaskWorker.cs" />
     <Compile Include="Helpers\BitmapOrNot.cs" />
     <Compile Include="Helpers\BoolValue.cs" />
@@ -107,6 +113,9 @@
     <Compile Include="Usecases\SplitBitmapUsecase.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\InstallForm.resx">
+      <DependentUpon>InstallForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PicturesControl.resx">
       <DependentUpon>PicturesControl.cs</DependentUpon>
