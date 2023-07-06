@@ -74,9 +74,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\AppendableTaskWorker.cs" />
     <Compile Include="Helpers\BitmapOrNot.cs" />
     <Compile Include="Helpers\BoolValue.cs" />
+    <Compile Include="Helpers\FillBackgroundEventArgs.cs" />
     <Compile Include="Helpers\LicenseInfo.cs" />
+    <Compile Include="Helpers\PictureItemExtensions.cs" />
     <Compile Include="Helpers\SvgRenderEventArgs.cs" />
     <Compile Include="Usecases\ExtractIconUsecase.cs" />
     <Compile Include="FitRect3.cs" />
@@ -89,7 +92,6 @@
     <Compile Include="Helpers\FileSelectedEventArgs.cs" />
     <Compile Include="Helpers\PickEventArgs.cs" />
     <Compile Include="Helpers\SplitEventArgs.cs" />
-    <Compile Include="Item.cs" />
     <Compile Include="PicturesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

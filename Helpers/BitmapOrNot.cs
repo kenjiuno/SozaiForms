@@ -9,6 +9,7 @@ namespace SozaiForms.Helpers
 {
     public class BitmapOrNot
     {
+        public string FilePath { get; set; }
         public string Extension { get; set; }
         public bool CanLoad { get; set; }
         public Func<Bitmap> Load { get; set; }

@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static SozaiForms.PicturesControl;
 
 namespace SozaiForms
 {
@@ -29,15 +30,19 @@ namespace SozaiForms
         private readonly SplitBitmapUsecase _splitBitmapUsecase;
         private readonly string _dirsFile;
         private readonly string _defaultInstallDir;
-        private Task _task = null;
+        private readonly Brush _iconBack = new SolidBrush(Color.FromArgb(222, 255, 255));
+        private readonly Brush _svgBack = new SolidBrush(Color.FromArgb(255, 255, 222));
         private CancellationTokenSource _cts = new CancellationTokenSource();
+        private BitmapOrNot _selectedItem = null;
+        private AppendableTaskWorker _appendableTaskWorker;
 
         public Form1(
             SplitBitmapUsecase splitBitmapUsecase,
             ExtractIconUsecase extractIconUsecase,
             RenderFileToBitmapUsecase renderFileToBitmapUsecase,
             FileListManagerUsecase fileListManagerUsecase,
-            LicenseInfoManagerUsecase licenseInfoManagerUsecase
+            LicenseInfoManagerUsecase licenseInfoManagerUsecase,
+            AppendableTaskWorker appendableTaskWorker
         )
         {
             _licenseInfoManagerUsecase = licenseInfoManagerUsecase;
@@ -50,12 +55,32 @@ namespace SozaiForms
             Directory.CreateDirectory(_defaultInstallDir);
 
             InitializeComponent();
+
+            _appendableTaskWorker = appendableTaskWorker;
+            _appendableTaskWorker.OnStarted += () =>
+            {
+                _idle.Text = "実行中";
+            };
+            _appendableTaskWorker.OnCompleted += task =>
+            {
+                Invoke(
+                    (Action)(
+                        () =>
+                        {
+                            _idle.Text = task.IsFaulted
+                                ? task.Exception + ""
+                                : "待機";
+                        }
+                    )
+                );
+            };
         }
 
         private void SetEnabled(bool f)
         {
             _clearCache.Enabled = f;
             _searchNow.Enabled = f;
+            _installMaterials.Enabled = f;
         }
 
         private string[] GetValidDirs()
@@ -78,69 +103,6 @@ namespace SozaiForms
             }
         }
 
-        private void pictures1_Split(object sender, Helpers.SplitEventArgs e)
-        {
-            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(e.FilePath) + "_" + DateTime.Now.Ticks);
-            Directory.CreateDirectory(dir);
-
-            try
-            {
-                int n = 1;
-                foreach (var pic in _splitBitmapUsecase.Split(e.FilePath))
-                {
-                    pic.Save(Path.Combine(dir, n + ".png"));
-                    n++;
-                }
-
-                Process.Start(dir);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("エラー\n\n" + ex);
-            }
-        }
-
-        private void pictures1_Pick(object sender, Helpers.PickEventArgs e)
-        {
-            File.Copy(
-                e.FilePath,
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                    Path.GetFileName(e.FilePath)
-                ),
-                true
-            );
-        }
-
-        private void pictures1_Explode(object sender, Helpers.FileSelectedEventArgs e)
-        {
-            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(e.FilePath) + "_" + DateTime.Now.Ticks);
-            Directory.CreateDirectory(dir);
-
-            foreach (var res in _extractIconUsecase.LoadIcos(new String[] { e.FilePath }))
-            {
-                res.pic.Save(Path.Combine(dir, res.fn + ".png"));
-            }
-
-            Process.Start(dir);
-        }
-
-        private void pictures1_SaveAs(object sender, Helpers.FileSelectedEventArgs e)
-        {
-            var sfd = new SaveFileDialog();
-            sfd.FileName = Path.GetFileName(e.FilePath);
-            sfd.DefaultExt = Path.GetExtension(sfd.FileName);
-            sfd.Filter = string.Format("{0}|{0}", "*" + Path.GetExtension(sfd.FileName));
-            if (sfd.ShowDialog(this) == DialogResult.OK)
-            {
-                File.Copy(e.FilePath, sfd.FileName, true);
-            }
-        }
-
-        private void installMenu_DropDownOpening(object sender, EventArgs e)
-        {
-        }
-
         private void OpenInstallFolder(object sender, EventArgs e)
         {
             Process.Start(_defaultInstallDir);
@@ -151,64 +113,37 @@ namespace SozaiForms
             var zipFile = (string)((ToolStripItem)sender).Tag;
             if (File.Exists(zipFile))
             {
-                using (new AH())
+                if (MessageBox.Show(this, $"{zipFile} を直ちにインストールしますか", Text, MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    var dirSaveTo = Path.Combine(_defaultInstallDir, Path.GetFileNameWithoutExtension(zipFile));
-                    Directory.CreateDirectory(dirSaveTo);
-                    ZipFile.ExtractToDirectory(zipFile, dirSaveTo, Encoding.GetEncoding(932));
-                    _clearCache_Click(_clearCache, e);
-                    Process.Start(dirSaveTo);
+                    using (new AH())
+                    {
+                        var dirSaveTo = Path.Combine(_defaultInstallDir, Path.GetFileNameWithoutExtension(zipFile));
+                        Directory.CreateDirectory(dirSaveTo);
+                        ZipFile.ExtractToDirectory(zipFile, dirSaveTo, Encoding.GetEncoding(932));
+                        _clearCache_Click(_clearCache, e);
+                        Process.Start(dirSaveTo);
+                    }
                 }
             }
-        }
-
-        private void pictures1_SvgRender(object sender, Helpers.SvgRenderEventArgs e)
-        {
-            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(e.FilePath) + "_" + DateTime.Now.Ticks);
-            Directory.CreateDirectory(dir);
-
-            if (e.Render != null)
-            {
-                foreach (var size in new int[] { 16, 32, 48, 64, 96, 128, 256, })
-                {
-                    e.Render(size).Save(Path.Combine(dir, $"{size}.png"));
-                }
-            }
-
-            Process.Start(dir);
         }
 
         private void _clearCache_Click(object sender, EventArgs e)
         {
-            var next = GetTask();
-
-            async Task RunAsync()
-            {
-                try
+            _appendableTaskWorker.Run(
+                async previous =>
                 {
-                    await next;
+                    try
+                    {
+                        await previous;
+                    }
+                    finally
+                    {
+                        _fileListManagerUsecase.DeleteCache();
+                        _licenseInfoManagerUsecase.DeleteCache();
+                        textBox1.Select();
+                    }
                 }
-                finally
-                {
-                    _fileListManagerUsecase.DeleteCache();
-                    _licenseInfoManagerUsecase.DeleteCache();
-                    textBox1.Select();
-                }
-            }
-
-            SetTask(RunAsync());
-        }
-
-        private Task GetTask()
-        {
-            if (_task == null || _task.IsCompleted)
-            {
-                return Task.CompletedTask;
-            }
-            else
-            {
-                return _task;
-            }
+            );
         }
 
         private void _editDirs_Click(object sender, EventArgs e)
@@ -275,50 +210,22 @@ namespace SozaiForms
 
         private void _searchNow_Click(object sender, EventArgs e)
         {
-            var next = GetTask();
-
-            async Task RunAsync()
-            {
-                await next;
-
-                _pictures.ClearItems();
-
-                SetEnabled(false);
-                try
+            _appendableTaskWorker.Run(
+            async previous =>
                 {
-                    _cts = new CancellationTokenSource();
-                    await Task.Run(() => Search(textBox1.Text, _cts.Token));
-                }
-                finally
-                {
-                    SetEnabled(true);
-                }
-            }
+                    await previous;
 
-            SetTask(RunAsync());
-        }
+                    _pictures.ClearItems();
 
-        private void SetTask(Task task)
-        {
-            _task = task;
-
-            _idle.Text = "実行中";
-
-            task.GetAwaiter().OnCompleted(
-                () =>
-                {
-                    if (ReferenceEquals(task, _task))
+                    SetEnabled(false);
+                    try
                     {
-                        Invoke(
-                            (Action)(
-                                () =>
-                                {
-                                    _idle.Text = task.IsFaulted
-                                        ? task.Exception + ""
-                                        : "待機";
-                                }
-                            )
-                        );
+                        _cts = new CancellationTokenSource();
+                        await Task.Run(() => Search(textBox1.Text, _cts.Token));
+                    }
+                    finally
+                    {
+                        SetEnabled(true);
                     }
                 }
             );
@@ -362,10 +269,9 @@ namespace SozaiForms
                         {
                             var picture = info.Load();
 
-                            var newItem = new Item
+                            var newItem = new PictureItem
                             {
-                                Info = info,
-                                FilePath = fp,
+                                Tag = info,
                                 Picture = picture,
                                 License = string.Join(
                                     "\n",
@@ -392,6 +298,137 @@ namespace SozaiForms
                         }
                     }
                 }
+            }
+        }
+
+        private void _openSozai_Click(object sender, EventArgs e)
+        {
+            Process.Start(_selectedItem.FilePath);
+        }
+
+        private void _pictures_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (true
+                && _pictures.FindItemAt(e.Location) is PictureItem pictureItem
+                && pictureItem.GetInfo() is BitmapOrNot info
+            )
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    DoDragDrop(
+                        new DataObject(
+                            DataFormats.FileDrop,
+                            new string[] { info.FilePath }
+                        ),
+                        DragDropEffects.Copy | DragDropEffects.Link
+                    );
+                }
+                else if (e.Button == MouseButtons.Right)
+                {
+                    _selectedItem = info;
+                    _explode.Enabled = info.IsIcon;
+                    _svgRender.Enabled = info.IsSvg;
+                    _split.Enabled = !info.IsSvg;
+                    _sozaiMenu.Show(_pictures.PointToScreen(e.Location));
+                }
+            }
+        }
+
+        private void _openSozaiParent_Click(object sender, EventArgs e)
+        {
+            Process.Start("explorer.exe", $"/select,\"{_selectedItem.FilePath}\"");
+
+        }
+
+        private void _saveAs_Click(object sender, EventArgs e)
+        {
+            var sfd = new SaveFileDialog();
+            sfd.FileName = Path.GetFileName(_selectedItem.FilePath);
+            sfd.DefaultExt = Path.GetExtension(sfd.FileName);
+            sfd.Filter = string.Format("{0}|{0}", "*" + Path.GetExtension(sfd.FileName));
+            if (sfd.ShowDialog(this) == DialogResult.OK)
+            {
+                File.Copy(_selectedItem.FilePath, sfd.FileName, true);
+            }
+        }
+
+        private void _pick_Click(object sender, EventArgs e)
+        {
+            File.Copy(
+                _selectedItem.FilePath,
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                    Path.GetFileName(_selectedItem.FilePath)
+                ),
+                true
+            );
+        }
+
+        private void _explode_Click(object sender, EventArgs e)
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(_selectedItem.FilePath) + "_" + DateTime.Now.Ticks);
+            Directory.CreateDirectory(dir);
+
+            foreach (var res in _extractIconUsecase.LoadIcos(new String[] { _selectedItem.FilePath }))
+            {
+                res.pic.Save(Path.Combine(dir, res.fn + ".png"));
+            }
+
+            Process.Start(dir);
+        }
+
+        private void _svgRender_Click(object sender, EventArgs e)
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(_selectedItem.FilePath) + "_" + DateTime.Now.Ticks);
+            Directory.CreateDirectory(dir);
+
+            if (_selectedItem.RenderSvg != null)
+            {
+                foreach (var size in new int[] { 16, 32, 48, 64, 96, 128, 256, })
+                {
+                    _selectedItem.RenderSvg(size).Save(Path.Combine(dir, $"{size}.png"));
+                }
+            }
+
+            Process.Start(dir);
+        }
+
+        private void _split_Click(object sender, EventArgs e)
+        {
+            var dir = Path.Combine(Path.GetTempPath(), Path.GetFileName(_selectedItem.FilePath) + "_" + DateTime.Now.Ticks);
+            Directory.CreateDirectory(dir);
+
+            try
+            {
+                int n = 1;
+                foreach (var pic in _splitBitmapUsecase.Split(_selectedItem.FilePath))
+                {
+                    pic.Save(Path.Combine(dir, n + ".png"));
+                    n++;
+                }
+
+                Process.Start(dir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("エラー\n\n" + ex);
+            }
+
+        }
+
+        private void _pictures_FillBackground(object sender, FillBackgroundEventArgs e)
+        {
+            var cv = e.Graphics;
+            var info = e.PictureItem.GetInfo();
+
+            if (false) { }
+            else if (info.IsIcon)
+            {
+                cv.FillRectangle(_iconBack, e.Rectangle);
+            }
+            else if (info.IsSvg)
+            {
+                cv.FillRectangle(_svgBack, e.Rectangle);
             }
         }
     }

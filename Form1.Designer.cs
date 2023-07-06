@@ -28,13 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this._top = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this._searchNow = new System.Windows.Forms.Button();
-            this._pictures = new SozaiForms.PicturesControl();
             this._root = new System.Windows.Forms.ToolStripContainer();
+            this._bottom = new System.Windows.Forms.StatusStrip();
+            this._idle = new System.Windows.Forms.ToolStripStatusLabel();
+            this._pictures = new SozaiForms.PicturesControl();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this._clearCache = new System.Windows.Forms.ToolStripButton();
             this._editDirs = new System.Windows.Forms.ToolStripButton();
@@ -42,15 +45,24 @@
             this._toggle = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this._installMaterials = new System.Windows.Forms.ToolStripDropDownButton();
-            this._bottom = new System.Windows.Forms.StatusStrip();
-            this._idle = new System.Windows.Forms.ToolStripStatusLabel();
+            this._sozaiMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this._openSozai = new System.Windows.Forms.ToolStripMenuItem();
+            this._openSozaiParent = new System.Windows.Forms.ToolStripMenuItem();
+            this._saveAs = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this._pick = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this._explode = new System.Windows.Forms.ToolStripMenuItem();
+            this._svgRender = new System.Windows.Forms.ToolStripMenuItem();
+            this._split = new System.Windows.Forms.ToolStripMenuItem();
             this._top.SuspendLayout();
             this._root.BottomToolStripPanel.SuspendLayout();
             this._root.ContentPanel.SuspendLayout();
             this._root.TopToolStripPanel.SuspendLayout();
             this._root.SuspendLayout();
-            this.toolStrip1.SuspendLayout();
             this._bottom.SuspendLayout();
+            this.toolStrip1.SuspendLayout();
+            this._sozaiMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // _top
@@ -108,24 +120,6 @@
             this._searchNow.UseVisualStyleBackColor = true;
             this._searchNow.Click += new System.EventHandler(this._searchNow_Click);
             // 
-            // _pictures
-            // 
-            this._pictures.AutoScroll = true;
-            this._pictures.AutoScrollMinSize = new System.Drawing.Size(66, 0);
-            this._pictures.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._pictures.Location = new System.Drawing.Point(0, 33);
-            this._pictures.Margin = new System.Windows.Forms.Padding(9, 29444, 9, 29444);
-            this._pictures.Name = "_pictures";
-            this._pictures.ShowLic = false;
-            this._pictures.ShowSize = true;
-            this._pictures.Size = new System.Drawing.Size(957, 270);
-            this._pictures.TabIndex = 1;
-            this._pictures.SaveAs += new System.EventHandler<SozaiForms.Helpers.FileSelectedEventArgs>(this.pictures1_SaveAs);
-            this._pictures.Explode += new System.EventHandler<SozaiForms.Helpers.FileSelectedEventArgs>(this.pictures1_Explode);
-            this._pictures.Split += new System.EventHandler<SozaiForms.Helpers.SplitEventArgs>(this.pictures1_Split);
-            this._pictures.Pick += new System.EventHandler<SozaiForms.Helpers.PickEventArgs>(this.pictures1_Pick);
-            this._pictures.SvgRender += new System.EventHandler<SozaiForms.Helpers.SvgRenderEventArgs>(this.pictures1_SvgRender);
-            // 
             // _root
             // 
             // 
@@ -148,6 +142,37 @@
             // _root.TopToolStripPanel
             // 
             this._root.TopToolStripPanel.Controls.Add(this.toolStrip1);
+            // 
+            // _bottom
+            // 
+            this._bottom.Dock = System.Windows.Forms.DockStyle.None;
+            this._bottom.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this._idle});
+            this._bottom.Location = new System.Drawing.Point(0, 0);
+            this._bottom.Name = "_bottom";
+            this._bottom.Size = new System.Drawing.Size(957, 22);
+            this._bottom.TabIndex = 0;
+            // 
+            // _idle
+            // 
+            this._idle.Name = "_idle";
+            this._idle.Size = new System.Drawing.Size(16, 17);
+            this._idle.Text = "...";
+            // 
+            // _pictures
+            // 
+            this._pictures.AutoScroll = true;
+            this._pictures.AutoScrollMinSize = new System.Drawing.Size(66, 0);
+            this._pictures.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._pictures.Location = new System.Drawing.Point(0, 33);
+            this._pictures.Margin = new System.Windows.Forms.Padding(12, 46006, 12, 46006);
+            this._pictures.Name = "_pictures";
+            this._pictures.ShowLic = false;
+            this._pictures.ShowSize = true;
+            this._pictures.Size = new System.Drawing.Size(957, 270);
+            this._pictures.TabIndex = 1;
+            this._pictures.FillBackground += new System.EventHandler<SozaiForms.Helpers.FillBackgroundEventArgs>(this._pictures_FillBackground);
+            this._pictures.MouseDown += new System.Windows.Forms.MouseEventHandler(this._pictures_MouseDown);
             // 
             // toolStrip1
             // 
@@ -214,21 +239,80 @@
             this._installMaterials.Text = "素材をインストール";
             this._installMaterials.DropDownOpening += new System.EventHandler(this._installMaterials_DropDownOpening);
             // 
-            // _bottom
+            // _sozaiMenu
             // 
-            this._bottom.Dock = System.Windows.Forms.DockStyle.None;
-            this._bottom.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this._idle});
-            this._bottom.Location = new System.Drawing.Point(0, 0);
-            this._bottom.Name = "_bottom";
-            this._bottom.Size = new System.Drawing.Size(957, 22);
-            this._bottom.TabIndex = 0;
+            this._sozaiMenu.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this._sozaiMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this._openSozai,
+            this._openSozaiParent,
+            this._saveAs,
+            this.toolStripSeparator2,
+            this._pick,
+            this.toolStripSeparator3,
+            this._explode,
+            this._svgRender,
+            this._split});
+            this._sozaiMenu.Name = "contextMenuStrip1";
+            this._sozaiMenu.Size = new System.Drawing.Size(231, 170);
             // 
-            // _idle
+            // _openSozai
             // 
-            this._idle.Name = "_idle";
-            this._idle.Size = new System.Drawing.Size(16, 17);
-            this._idle.Text = "...";
+            this._openSozai.Name = "_openSozai";
+            this._openSozai.Size = new System.Drawing.Size(230, 22);
+            this._openSozai.Text = "ひらく";
+            this._openSozai.Click += new System.EventHandler(this._openSozai_Click);
+            // 
+            // _openSozaiParent
+            // 
+            this._openSozaiParent.Name = "_openSozaiParent";
+            this._openSozaiParent.Size = new System.Drawing.Size(230, 22);
+            this._openSozaiParent.Text = "親フォルダ";
+            this._openSozaiParent.Click += new System.EventHandler(this._openSozaiParent_Click);
+            // 
+            // _saveAs
+            // 
+            this._saveAs.Name = "_saveAs";
+            this._saveAs.Size = new System.Drawing.Size(230, 22);
+            this._saveAs.Text = "名前をつけて保存";
+            this._saveAs.Click += new System.EventHandler(this._saveAs_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(227, 6);
+            // 
+            // _pick
+            // 
+            this._pick.Name = "_pick";
+            this._pick.Size = new System.Drawing.Size(230, 22);
+            this._pick.Text = "ピクチャへコピー";
+            this._pick.Click += new System.EventHandler(this._pick_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(227, 6);
+            // 
+            // _explode
+            // 
+            this._explode.Name = "_explode";
+            this._explode.Size = new System.Drawing.Size(230, 22);
+            this._explode.Text = "アイコンファイルを解体(&E)";
+            this._explode.Click += new System.EventHandler(this._explode_Click);
+            // 
+            // _svgRender
+            // 
+            this._svgRender.Name = "_svgRender";
+            this._svgRender.Size = new System.Drawing.Size(230, 22);
+            this._svgRender.Text = "S&VG を複数解像度でレンダリング";
+            this._svgRender.Click += new System.EventHandler(this._svgRender_Click);
+            // 
+            // _split
+            // 
+            this._split.Name = "_split";
+            this._split.Size = new System.Drawing.Size(230, 22);
+            this._split.Text = "スプライト画像を分割(&S)";
+            this._split.Click += new System.EventHandler(this._split_Click);
             // 
             // Form1
             // 
@@ -249,10 +333,11 @@
             this._root.TopToolStripPanel.PerformLayout();
             this._root.ResumeLayout(false);
             this._root.PerformLayout();
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
             this._bottom.ResumeLayout(false);
             this._bottom.PerformLayout();
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
+            this._sozaiMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -274,6 +359,16 @@
         private System.Windows.Forms.ToolStripDropDownButton _installMaterials;
         private System.Windows.Forms.StatusStrip _bottom;
         private System.Windows.Forms.ToolStripStatusLabel _idle;
+        private System.Windows.Forms.ContextMenuStrip _sozaiMenu;
+        private System.Windows.Forms.ToolStripMenuItem _openSozai;
+        private System.Windows.Forms.ToolStripMenuItem _openSozaiParent;
+        private System.Windows.Forms.ToolStripMenuItem _saveAs;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem _pick;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem _explode;
+        private System.Windows.Forms.ToolStripMenuItem _svgRender;
+        private System.Windows.Forms.ToolStripMenuItem _split;
     }
 }
 

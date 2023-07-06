@@ -25,6 +25,7 @@ namespace SozaiForms.Usecases
                     Extension = extension,
                     Load = () => new Bitmap(new MemoryStream(File.ReadAllBytes(filePath))),
                     IsIcon = true,
+                    FilePath = filePath,
                 };
             }
             else if ("/.svg/".Contains("/" + extension + "/"))
@@ -44,6 +45,7 @@ namespace SozaiForms.Usecases
                         var svgDoc = SvgDocument.Open<SvgDocument>(filePath);
                         return svgDoc.Draw(size, size);
                     },
+                    FilePath = filePath,
                 };
             }
             else if ("/.bmp/.gif/.png/.jpg/.jpeg/.emf/.wmf/.ico/".Contains("/" + extension + "/"))
@@ -53,6 +55,7 @@ namespace SozaiForms.Usecases
                     CanLoad = true,
                     Extension = extension,
                     Load = () => new Bitmap(new MemoryStream(File.ReadAllBytes(filePath))),
+                    FilePath = filePath,
                 };
             }
             else
@@ -60,6 +63,7 @@ namespace SozaiForms.Usecases
                 return new BitmapOrNot
                 {
                     Extension = extension,
+                    FilePath = filePath,
                 };
             }
         }

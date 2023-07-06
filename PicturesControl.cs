@@ -26,19 +26,25 @@ namespace SozaiForms
             SetStyle(ControlStyles.ResizeRedraw, true);
         }
 
-        private readonly List<Item> _items = new List<Item>();
+        public class PictureItem
+        {
+            public Bitmap Picture { get; set; }
+            public string License { get; set; }
+            public string WidthRepresentation { get; set; }
+
+            public object Tag { get; set; }
+        }
+
+        private readonly List<PictureItem> _items = new List<PictureItem>();
 
         private bool _showLic = false;
         private bool _showSize = false;
         private int _selectedIndex;
 
-        private Item SelectedItem => ((uint)_selectedIndex >= (uint)_items.Count) ? null : _items[_selectedIndex];
+        private PictureItem SelectedItem => ((uint)_selectedIndex >= (uint)_items.Count) ? null : _items[_selectedIndex];
 
         private const int BLKX = 48 + 2;
         private const int BLKY = 56 + 2;
-
-        private static readonly Brush _iconBack = new SolidBrush(Color.FromArgb(222, 255, 255));
-        private static readonly Brush _svgBack = new SolidBrush(Color.FromArgb(255, 255, 222));
 
         private static readonly Font _smallFont = new Font("Arial", 5);
 
@@ -94,10 +100,7 @@ namespace SozaiForms
             };
         }
 
-        private void Pictures_Load(object sender, EventArgs e)
-        {
-
-        }
+        public event EventHandler<FillBackgroundEventArgs> FillBackground;
 
         private void Pictures_Paint(object sender, PaintEventArgs e)
         {
@@ -111,15 +114,7 @@ namespace SozaiForms
 
                 if (e.ClipRectangle.IntersectsWith(rcMax))
                 {
-                    if (false) { }
-                    else if (item.Info.IsIcon)
-                    {
-                        cv.FillRectangle(_iconBack, rcMax);
-                    }
-                    else if (item.Info.IsSvg)
-                    {
-                        cv.FillRectangle(_svgBack, rcMax);
-                    }
+                    FillBackground?.Invoke(this, new FillBackgroundEventArgs(cv, rcMax, item));
                     var newRect = FitRect3.Fit(rcMax, item.Picture.Size);
                     cv.DrawImage(item.Picture, newRect);
                     cv.DrawLines(Pens.Gray, new Point[] {
@@ -142,7 +137,7 @@ namespace SozaiForms
             }
         }
 
-        internal void Add(Item item)
+        internal void Add(PictureItem item)
         {
             int t = _items.Count;
 
@@ -169,75 +164,23 @@ namespace SozaiForms
             AutoScrollMinSize = new Size(BLKX + 16, BLKY * GetPictureLayouter().maxy);
         }
 
-        private void PicturesControl_MouseDown(object sender, MouseEventArgs e)
-        {
-            _selectedIndex = GetPictureLayouter().GetPos(e.Location - new Size(AutoScrollPosition));
-            if (_selectedIndex < 0)
-            {
-                return;
-            }
-            if (e.Button == MouseButtons.Left)
-            {
-                DoDragDrop(new DataObject(DataFormats.FileDrop, new string[] { SelectedItem.FilePath }), DragDropEffects.Copy | DragDropEffects.Link);
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                _explode.Enabled = SelectedItem.Info.IsIcon;
-                _svgRender.Enabled = SelectedItem.Info.IsSvg;
-                _split.Enabled = !SelectedItem.Info.IsSvg;
-                contextMenuStrip1.Show(PointToScreen(e.Location));
-            }
-        }
-
-        private void mOpen_Click(object sender, EventArgs e)
-        {
-            Process.Start(SelectedItem.FilePath);
-        }
-
-        private void mFolder_Click(object sender, EventArgs e)
-        {
-            Process.Start("explorer.exe", "/select,\"" + (SelectedItem.FilePath) + "\"");
-        }
-
-        public event EventHandler<FileSelectedEventArgs> SaveAs;
-
-        private void mSaveAs_Click(object sender, EventArgs e)
-        {
-            SaveAs?.Invoke(this, new FileSelectedEventArgs(SelectedItem.FilePath));
-        }
-
-        public event EventHandler<FileSelectedEventArgs> Explode;
-
-        private void mExplode_Click(object sender, EventArgs e)
-        {
-            Explode?.Invoke(this, new FileSelectedEventArgs(SelectedItem.FilePath));
-        }
-
-        public event EventHandler<SplitEventArgs> Split;
-
-        private void mSplit_Click(object sender, EventArgs e)
-        {
-            Split?.Invoke(this, new SplitEventArgs(SelectedItem.FilePath));
-        }
-
-        public event EventHandler<PickEventArgs> Pick;
-
-        private void mPick_Click(object sender, EventArgs e)
-        {
-            Pick?.Invoke(this, new PickEventArgs(SelectedItem.FilePath));
-        }
-
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool ShowLic { get { return _showLic; } set { _showLic = value; Invalidate(); } }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool ShowSize { get { return _showSize; } set { _showSize = value; Invalidate(); } }
 
-        public event EventHandler<SvgRenderEventArgs> SvgRender;
-
-        private void _svgRender_Click(object sender, EventArgs e)
+        public PictureItem FindItemAt(Point location)
         {
-            SvgRender?.Invoke(this, new SvgRenderEventArgs(SelectedItem.FilePath, SelectedItem.Info?.RenderSvg));
+            _selectedIndex = GetPictureLayouter().GetPos(location - new Size(AutoScrollPosition));
+            if (_selectedIndex < 0)
+            {
+                return null;
+            }
+            else
+            {
+                return _items[_selectedIndex];
+            }
         }
     }
 }
