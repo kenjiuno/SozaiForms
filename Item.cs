@@ -1,21 +1,21 @@
-﻿using System;
+﻿using SozaiForms.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SozaiForms {
-    class Item {
-        /// <summary>
-        /// lower .ext
-        /// </summary>
-        internal string ext;
-        internal string fp;
-        internal Bitmap pic;
-        internal string license;
+namespace SozaiForms
+{
+    class Item
+    {
+        public string FilePath { get; set; }
+        public Bitmap Picture { get; set; }
+        public string License { get; set; }
 
-        internal bool isIco { get { return ext == ".ico"; } }
-        public int width { get { return pic.Width; } }
+        public string WidthRepresentation { get; set; }
+
+        public BitmapOrNot Info { get; set; }
     }
 }
