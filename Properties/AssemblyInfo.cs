@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyInformationalVersion("0.2")]//here
+[assembly: AssemblyInformationalVersion("0.3")]//here
 
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SozaiForms")]
-[assembly: AssemblyCopyright("Copyright ©  2017,2023")]
+[assembly: AssemblyCopyright("Copyright ©  2017,2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

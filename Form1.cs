@@ -37,6 +37,7 @@ namespace SozaiForms
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private BitmapOrNot _selectedItem = null;
         private AppendableTaskWorker _appendableTaskWorker;
+        private readonly char[] _pathSeparators = new char[] { '/', '\\' };
 
         public Form1(
             SplitBitmapUsecase splitBitmapUsecase,
@@ -283,10 +284,11 @@ namespace SozaiForms
                 {
                     return;
                 }
+                var name = GetNameOnly(fp);
                 bool any = false, all = true;
                 foreach (var keyword in keywords)
                 {
-                    if (fp.IndexOf(keyword, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    if (name.IndexOf(keyword, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     {
                         any = true;
                     }
@@ -335,6 +337,14 @@ namespace SozaiForms
                     }
                 }
             }
+        }
+
+        private string GetNameOnly(string filePath)
+        {
+            var yenAt = filePath.LastIndexOfAny(_pathSeparators);
+            var fileName = yenAt < 0 ? filePath : filePath.Substring(yenAt + 1);
+            var periodAt = fileName.IndexOf('.');
+            return periodAt < 0 ? fileName : fileName.Substring(0, periodAt);
         }
 
         private void _openSozai_Click(object sender, EventArgs e)
